@@ -1,0 +1,170 @@
+#Got help from tutorial http://youtu.be/PpdJjaiLX6A
+
+import pygame
+import random
+ 
+#Colors
+BLACK = (9, 10, 7)
+WHITE = (255, 255, 255)
+RED = (250, 20, 80)
+BLUE = (0, 165, 255)
+ 
+           '''Classes'''
+ 
+ 
+class Block(pygame.sprite.Sprite):
+    """ This class represents the block. """
+    def __init__(self, color):
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+ 
+        self.image = pygame.Surface([20, 15])
+        self.image.fill(color)
+ 
+        self.rect = self.image.get_rect()
+ 
+ 
+class Player(pygame.sprite.Sprite):
+    """ This class represents the Player. """
+ 
+    def __init__(self):
+        """ Set up the player on creation. """
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+ 
+        self.image = pygame.Surface([20, 20])
+        self.image.fill(RED)
+ 
+        self.rect = self.image.get_rect()
+ 
+    def update(self):
+        """ Update the player's position. """
+        # Get the current mouse position. This returns the position
+        # as a list of two numbers.
+        pos = pygame.mouse.get_pos()
+ 
+        # Set the player x position to the mouse x position
+        self.rect.x = pos[0]
+ 
+ 
+class Bullet(pygame.sprite.Sprite):
+    """ This class represents the bullet . """
+    def __init__(self):
+        # Call the parent class (Sprite) constructor
+        super().__init__()
+ 
+        self.image = pygame.Surface([4, 10])
+        self.image.fill(BLACK)
+ 
+        self.rect = self.image.get_rect()
+ 
+    def update(self):
+        """ Move the bullet. """
+        self.rect.y -= 3
+ 
+ 
+'''  Main Window  '''
+ 
+# Initialize
+pygame.init()
+ 
+#Screen, height and width
+screen_width = 700
+screen_height = 400
+screen = pygame.display.set_mode([screen_width, screen_height])
+ 
+''' LIST of ALL Sprites  '''
+ 
+# This is a list of every sprite. All blocks and the player block as well.
+all_sprites_list = pygame.sprite.Group()
+ 
+# List of each block in the game
+block_list = pygame.sprite.Group()
+ 
+# List of each bullet
+bullet_list = pygame.sprite.Group()
+ 
+''' Create Sprites  '''
+ 
+for i in range(50):
+    #Represents a block
+    block = Block(BLUE)
+ 
+    #Random block spawn
+    block.rect.x = random.randrange(screen_width)
+    block.rect.y = random.randrange(350)
+ 
+    #add block to list objects
+    block_list.add(block)
+    all_sprites_list.add(block)
+ 
+#Create red player
+player = Player()
+all_sprites_list.add(player)
+ 
+#loop until exits
+done = False
+ 
+#for update speed (later used for fps)
+clock = pygame.time.Clock()
+ 
+score = 0
+player.rect.y = 370
+ 
+''' ------ Main Loop -------  '''
+while not done:
+    # --- Event Processing
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            done = True
+ 
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Fire a bullet if the user clicks the mouse button
+            bullet = Bullet()
+            # Set the bullet so it is where the player is
+            bullet.rect.x = player.rect.x
+            bullet.rect.y = player.rect.y
+            # Add the bullet to the lists
+            all_sprites_list.add(bullet)
+            bullet_list.add(bullet)
+ 
+    ''' --- GAME LOGIC ---  '''
+ 
+    # Call update() method on the sprites
+    all_sprites_list.update()
+ 
+    # Calculate each bullet
+    for bullet in bullet_list:
+ 
+        # See if it hit a block
+        block_hit_list = pygame.sprite.spritecollide(bullet, block_list, True)
+ 
+        # once block is hit - remove the bullet, +1pts at 50pts you win!
+        for block in block_hit_list:
+            bullet_list.remove(bullet)
+            all_sprites_list.remove(bullet)
+            score += 1
+            print(score)
+            if score == 50:
+                print('You win!')
+ 
+        # un-spawn/remove bullets off screen
+        if bullet.rect.y < -10:
+            bullet_list.remove(bullet)
+            all_sprites_list.remove(bullet)
+        
+     '''Draw a frame'''
+ 
+    #Clear Screen
+    screen.fill(WHITE)
+ 
+    # Draw actual Sprites
+    all_sprites_list.draw(screen)
+ 
+    #Update the screen
+    pygame.display.flip()
+ 
+    #Making it 20 frames
+    clock.tick(60)
+ 
+pygame.quit()
